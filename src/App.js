@@ -18,15 +18,21 @@ function getWeatherIcon(wmoCode) {
   return icons.get(arr);
 }
 
+function formatDay(dateStr) {
+  return new Intl.DateTimeFormat("en", {
+    weekday: "short",
+  }).format(new Date(dateStr));
+}
+
 function App() {
   const [location, setLocation] = useState("");
   const [weather, setWeather] = useState({});
   const [displayLocation, setDisplayLocation] = useState("");
-  const [isLoading, setIsLoading] = useState(false)
+  const [isLoading, setIsLoading] = useState(false);
 
   const getWeather = async function fetchWeather() {
     try {
-      setIsLoading(true)
+      setIsLoading(true);
       const geoRes = await fetch(
         `https://geocoding-api.open-meteo.com/v1/search?name=${location}`
       );
@@ -57,7 +63,11 @@ function App() {
       <h1>Classy Weather</h1>
       <Input location={location} setLocation={setLocation} />
       <button onClick={getWeather}>Get Weather</button>
-      <Weather displayLocation={displayLocation} isLoading={isLoading} weather={weather}/>
+      <Weather
+        displayLocation={displayLocation}
+        isLoading={isLoading}
+        weather={weather}
+      />
     </div>
   );
 }
@@ -76,26 +86,33 @@ function Input({ location, setLocation }) {
 }
 
 function Weather({ displayLocation, isLoading, weather }) {
-
   const {
     temperature_2m_max: max,
     temperature_2m_min: min,
-    time: dates,
     weathercode: codes,
   } = weather;
 
-
   return (
     <>
-    {isLoading && 
-    <h2>Weather {displayLocation}</h2>}
-    <ul className="weather">
-      {dates.map((date, i) => (
-        console.log(date)
-      ))}
-    </ul>
+      {isLoading && weather && weather.time && (
+        <>
+          <h2>Weather {displayLocation}</h2>
+          <ul className="weather">
+            {weather.time.map((date, i) => (
+              <Day
+                date={date}
+                max={max.at(i)}
+                min={min.at(i)}
+                code={codes.at(i)}
+                key={date}
+                isToday={i === 0}
+              />
+            ))}
+          </ul>
+        </>
+      )}
     </>
-  )
+  );
 }
 
 function Day({ date, max, min, code, isToday }) {
@@ -111,6 +128,5 @@ function Day({ date, max, min, code, isToday }) {
     </>
   );
 }
-
 
 export default App;
